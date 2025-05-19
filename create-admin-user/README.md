@@ -25,5 +25,31 @@ A secure bash script to create a sudo-enabled admin user on Linux systems and lo
 ## Usage
 
 1. Download the script:
+
    ```bash
-   wget https://raw.githubusercontent.com/your-username/devops-bash-scripts/main/create-admin-user/create-admin-user.sh
+   wget https://raw.githubusercontent.com/arduriki/devops-bash-scripts/main/create-admin-user/create-admin-user.sh
+   ```
+
+2. Make it executable:
+
+```bash
+chmod +x create-admin-user.sh
+```
+
+3. Run the script as root, providing the desired username:
+
+```bash
+sudo ./create-admin-user.sh newusername
+```
+
+4. The script will:
+
+- Create the new user
+- Add them to the sudo group
+- Generate a temporary password
+- Lock the root account password
+- Switch to the new user for immediate verification
+
+5. When prompted, enter the displayed temporary password
+
+6. Set a new, strong password when prompted
