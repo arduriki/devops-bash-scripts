@@ -41,7 +41,7 @@ A Bash script for quickly setting up essential developer tools and configuration
     bash
     
     ```bash
-    wget https://raw.githubusercontent.com/your-username/devops-bash-scripts/main/tools-init/tools-init.sh
+    wget https://raw.githubusercontent.com/arduriki/devops-bash-scripts/main/tools-init/tools-init.sh
     ```
     
 2. Make it executable:
