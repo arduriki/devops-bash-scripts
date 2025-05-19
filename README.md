@@ -11,6 +11,7 @@ This repository contains practical bash scripts to automate routine DevOps opera
 | Script | Description | OS Support |
 |--------|-------------|------------|
 | [create-admin-user](./create-admin-user/) | Creates a sudo user with secure defaults and locks the root account | Ubuntu/Debian |
+| [tools-init](./tools-init/) | Sets up essential developer tools and configurations on a new server | Ubuntu/Debian |
 
 ## Security
 
@@ -25,3 +26,7 @@ Each script directory contains:
 - A detailed README with usage instructions
 - The script file itself, thoroughly commented
 - Any additional resources needed
+
+## Author
+
+- [Jordi Ardrura](https://linkedin.com/in/jordi-ardura-gomez) - DevOps Engineer
