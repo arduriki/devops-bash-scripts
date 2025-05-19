@@ -29,12 +29,14 @@ fi
 
 # Determine current user's home directory
 if [ "$SUDO_USER" ]; then
-    USER_HOME=$(getent passwd "$SUDO_USER" | cut -d: -f6)
+    REAL_USER="$SUDO_USER"
+    USER_HOME=$(getent passwd "$REAL_USER" | cut -d: -f6)
 else
+    REAL_USER=$(whoami)
     USER_HOME=$HOME
 fi
 
-echo "Configuring user-specific shortcuts for $(basename "$USER_HOME")..."
+echo "Configuring user-specific shortcuts for $REAL_USER..."
 
 # Make sure we're modifying the correct .bashrc file
 USER_BASHRC="$USER_HOME/.bashrc"
@@ -78,6 +80,14 @@ echo "✅ Aliases and functions configured"
 echo "Enabling Docker service..."
 systemctl enable docker
 systemctl start docker
+
+# Add user to docker group
+if [ "$REAL_USER" != "root" ]; then
+    echo "Adding $REAL_USER to the docker group..."
+    usermod -aG docker "$REAL_USER"
+    echo "✅ User added to docker group (will take effect after logout/login)"
+fi
+
 echo "✅ Docker service started"
 
 # Create a temporary script to apply changes in the user's shell
@@ -103,3 +113,4 @@ rm -f /tmp/apply-bash-changes.sh
 
 echo "🎉 Tools initialization complete!"
 echo "NOTE: If aliases aren't working, run 'source ~/.bashrc' or start a new terminal"
+echo "NOTE: Docker group membership will take effect after logging out and back in"
