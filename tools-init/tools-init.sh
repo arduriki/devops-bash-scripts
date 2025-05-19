@@ -21,35 +21,56 @@ echo "✅ Developer tools installed"
 
 # Configure aliases for all users
 echo "Configuring system-wide aliases..."
-cat << 'EOF' >> /etc/bash.bashrc
+if ! grep -q "alias upgrade=" /etc/bash.bashrc; then
+    echo '# Server aliases' >> /etc/bash.bashrc
+    echo 'alias upgrade="sudo apt update && sudo apt upgrade -y"' >> /etc/bash.bashrc
+    echo "" >> /etc/bash.bashrc
+fi
 
-# Server aliases
-alias upgrade="sudo apt update && sudo apt upgrade -y"
-EOF
+# Determine current user's home directory
+if [ "$SUDO_USER" ]; then
+    USER_HOME=$(getent passwd "$SUDO_USER" | cut -d: -f6)
+else
+    USER_HOME=$HOME
+fi
 
-# Configure user-specific aliases and functions
-echo "Configuring user-specific shortcuts..."
-cat << 'EOF' >> ~/.bashrc
+echo "Configuring user-specific shortcuts for $(basename "$USER_HOME")..."
 
-# Tool-specific aliases
-EOF
+# Make sure we're modifying the correct .bashrc file
+USER_BASHRC="$USER_HOME/.bashrc"
 
+# Check if bat is installed and add alias
 if [ -f "/usr/bin/batcat" ]; then
-    echo 'alias cat="/usr/bin/batcat"' >> ~/.bashrc
+    if ! grep -q "alias cat=\"/usr/bin/batcat\"" "$USER_BASHRC"; then
+        echo '# Tool-specific aliases' >> "$USER_BASHRC"
+        echo 'alias cat="/usr/bin/batcat"' >> "$USER_BASHRC"
+        echo "Added bat alias"
+    fi
 fi
 
+# Check if lsd is installed and add/replace alias
 if [ -f "/usr/bin/lsd" ]; then
-    echo 'alias ls="/usr/bin/lsd"' >> ~/.bashrc
+    # First, comment out any existing ls alias if present
+    sed -i 's/^[[:space:]]*alias ls=/#alias ls=/' "$USER_BASHRC"
+    
+    # Then add our new alias if it doesn't exist
+    if ! grep -q "alias ls=\"/usr/bin/lsd\"" "$USER_BASHRC"; then
+        echo 'alias ls="/usr/bin/lsd"' >> "$USER_BASHRC"
+        echo "Added lsd alias"
+    fi
 fi
 
-# Add useful functions
-cat << 'EOF' >> ~/.bashrc
+# Add mkcd function if it doesn't exist
+if ! grep -q "mkcd()" "$USER_BASHRC"; then
+    cat << 'EOF' >> "$USER_BASHRC"
 
 # Create and enter directory in one command
 mkcd() {
   mkdir -p "$1" && cd "$1"
 }
 EOF
+    echo "Added mkcd function"
+fi
 
 echo "✅ Aliases and functions configured"
 
@@ -59,9 +80,26 @@ systemctl enable docker
 systemctl start docker
 echo "✅ Docker service started"
 
-# Apply bash changes to current session
-echo "Applying bash configuration changes..."
+# Create a temporary script to apply changes in the user's shell
+cat << 'EOF' > /tmp/apply-bash-changes.sh
+#!/bin/bash
 source ~/.bashrc
 echo "✅ Bash configuration applied to current session"
+EOF
+
+chmod +x /tmp/apply-bash-changes.sh
+
+echo "Applying bash configuration changes..."
+if [ "$SUDO_USER" ]; then
+    # If script is run with sudo, execute with the original user
+    sudo -u "$SUDO_USER" bash -i /tmp/apply-bash-changes.sh
+else
+    # If script is run directly as root
+    bash -i /tmp/apply-bash-changes.sh
+fi
+
+# Clean up
+rm -f /tmp/apply-bash-changes.sh
 
 echo "🎉 Tools initialization complete!"
+echo "NOTE: If aliases aren't working, run 'source ~/.bashrc' or start a new terminal"
